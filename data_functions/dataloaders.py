@@ -24,8 +24,10 @@ def load_MNIST(path: str) -> Tuple[Tuple[torch.Tensor, torch.Tensor], Tuple[torc
     )
 
     X_train = torch.tensor(X_train / 255, dtype=torch.float64)
-    Y_train = torch.tensor(Y_train).reshape(X_train.shape[0], 1)
+    # Y_train = torch.tensor(Y_train).reshape(X_train.shape[0], 1)
+    Y_train = torch.tensor(Y_train, dtype=torch.int64)
     X_test = torch.tensor(X_test / 255, dtype=torch.float64)
-    Y_test = torch.tensor(Y_test).reshape(X_test.shape[0], 1)
+    # Y_test = torch.tensor(Y_test).reshape(X_test.shape[0], 1)
+    Y_test = torch.tensor(Y_test, dtype=torch.int64)
 
     return (X_train, Y_train), (X_test, Y_test)
