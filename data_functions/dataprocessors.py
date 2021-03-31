@@ -11,9 +11,8 @@ def scale_data(train: torch.tensor, test: torch.tensor) -> Tuple[torch.tensor, t
     return train, test 
 
 
-def label_to_onehot(labels: torch.tensors, n_classes: int) -> torch.tensor:
-    N = labels.shape[0]
-    onehot = torch.zeros(N, n_classes).type(torch.float64)
-    onehot.scatter_(1, labels.type(torch.int64), torch.ones(N, 1).type(torch.float64))
+def label_to_onehot(labels: torch.tensor, n_classes: int) -> torch.tensor:
+
+    onehot = torch.nn.functional.one_hot(labels.type(torch.int64).flatten()).type(torch.float64)
 
     return onehot
