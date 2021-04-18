@@ -6,6 +6,7 @@ from plot_functions.plot_images import plot_image_collage
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
+import os
 
 
 from torch.utils.data import DataLoader, TensorDataset
@@ -13,6 +14,12 @@ import numpy as np
 
 
 SEED = 1234 
+
+OUTPUT_DIR = "output/cVAE-MLP"
+
+if not os.path.exists(OUTPUT_DIR):
+    print("Creating directory {}".format(OUTPUT_DIR))
+    os.makedirs(OUTPUT_DIR)
 
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -24,7 +31,7 @@ torch.backends.cudnn.deterministic = True
 
 
 """ Define variables """
-N_EPOCHS = 1
+N_EPOCHS = 100
 N_CLASSES = 10
 INPUT_DIM = X_train.shape[1]
 BATCH_SIZE = 64
@@ -59,7 +66,7 @@ def loss_fn(recon_x, x, mu, log_var):
 train_losses = []
 test_losses = []
 
-f = open("output/cVAE/cVAE_losses.txt", "a")
+f = open(os.path.join(OUTPUT_DIR, "cVAE_losses.txt"), "a")
 for ep in range(N_EPOCHS):
     for x, c in train_iter: 
         # Zero grad 
@@ -111,12 +118,12 @@ for ep in range(N_EPOCHS):
         test_losses.append(loss)
         
         print("Epoch [%d / %d] train loss: %f test loss: %f" %(ep + 1, N_EPOCHS, train_losses[-1], test_losses[-1]))
-        f.write("Epoch [%d / %d] train loss: %f test loss: %f" %(ep + 1, N_EPOCHS, train_losses[-1], test_losses[-1]))
+        f.write("Epoch [%d / %d] train loss: %f test loss: %f \n" %(ep + 1, N_EPOCHS, train_losses[-1], test_losses[-1]))
 
 f.close()
 
 ## Plot losses 
-plot_losses("output/cVAE", "cVAE", train_losses, test_losses)
+plot_losses(OUTPUT_DIR, "cVAE MLP", train_losses, test_losses)
 
 """ Evaluate """ 
 ## MSE Loss ##
@@ -126,7 +133,7 @@ X_out = dec(z.to(device), C_test.to(device))
 X_out = X_out.detach()
 print("MSE Loss between generated data and test data: {}".format(torch.nn.MSELoss()(X_out, X_test).item()))
 
-f = open("output/cVAE/cVAE_MSELoss.txt", "w")
+f = open(os.path.join(OUTPUT_DIR, "cVAE_MSELoss.txt"), "w")
 f.write("MSE Loss between generated data and test data: {}".format(torch.nn.MSELoss()(X_out, X_test).item()))
 f.close()
 
@@ -144,7 +151,7 @@ X_gen = dec(z.to(device), C_gen.to(device))
 X_gen = X_gen.detach().numpy()
 
 images = X_gen.reshape(N, 28, 28)
-plot_image_collage("output/cVAE", "cVAE", images, n_rows, n_cols)
+plot_image_collage(OUTPUT_DIR, "cVAE MLP", images, n_rows, n_cols)
 
 ## UMAP ##
 import umap.umap_ as umap
@@ -163,7 +170,7 @@ X_gen = dec(z.to(device), C_gen.to(device))
 X_gen = X_gen.detach().numpy()
 
 # Plot
-plot_UMAP(X_gen, Y_gen, N_CLASSES, "cVAE", "output/cVAE")
+plot_UMAP(X_gen, Y_gen, N_CLASSES, "cVAE MLP", OUTPUT_DIR)
 
 
 ## Save images for evaluation on classifier ##
@@ -178,4 +185,4 @@ C_gen = label_to_onehot(Y_gen, N_CLASSES)
 X_gen = dec(z.to(device), C_gen.to(device))
 X_gen = X_gen.detach()
 
-torch.save(X_gen, 'output/cVAE/cVAE_generated_images.pt')
+torch.save(X_gen, os.path.join(OUTPUT_DIR, "cVAE_MLP_generated_images.pt"))
