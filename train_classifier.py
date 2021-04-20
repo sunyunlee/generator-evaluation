@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import os
-
+import matplotlib.pyplot as plt
 from models.Classifier import Classifier
 from data_functions.dataloaders import load_MNIST
 from data_functions.dataprocessors import label_to_onehot
@@ -24,6 +24,8 @@ torch.backends.cudnn.deterministic = True
 
 """ Dataset """
 (X_train, Y_train), (X_test, Y_test) = load_MNIST("data")
+X_train = X_train.reshape((len(X_train), 1, 28, 28))
+X_test = X_test.reshape((len(X_test), 1, 28, 28))
 
 """ Define variables """
 N_CLASSES = 10 
