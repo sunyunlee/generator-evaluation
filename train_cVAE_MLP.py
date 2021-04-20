@@ -1,4 +1,4 @@
-from models.cVAE import Encoder, Decoder 
+from models.cVAE_MLP import Encoder, Decoder 
 from data_functions.dataloaders import load_MNIST
 from data_functions.dataprocessors import scale_data, label_to_onehot
 from plot_functions.plot_functions import plot_losses, plot_UMAP
@@ -121,6 +121,10 @@ for ep in range(N_EPOCHS):
         f.write("Epoch [%d / %d] train loss: %f test loss: %f \n" %(ep + 1, N_EPOCHS, train_losses[-1], test_losses[-1]))
 
 f.close()
+
+""" Save models """
+torch.save(enc, os.path.join(OUTPUT_DIR, "encoder.pt"))
+torch.save(dec, os.path.join(OUTPUT_DIR, "decoder.pt"))
 
 ## Plot losses 
 plot_losses(OUTPUT_DIR, "cVAE MLP", train_losses, test_losses)
