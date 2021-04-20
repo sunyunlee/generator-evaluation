@@ -28,5 +28,5 @@ class Classifier(nn.Module):
         out = self.dropout2(out)
         
         out = self.output(out)
-        out = nn.LogSoftmax(dim=1)(out)
+        out = nn.Softmax(dim=1)(out)
         return out 
