@@ -9,8 +9,12 @@ import os
 
 TRAINED_CSF_PATH = "output/Classifier/classifier.pt"
 
+# TODO: constant to set
+# MODEL = "cVAE-MLP"
+MODEL = "cVAE-CNN" 
+# MODEL = "cGAN-MLP"
+# MODEL = "cGAN-CNN"
 
-MODEL = "cVAE-CNN" # TODO: constant to set
 LATENT_DIM = 50 # TODO: constant to set
 
 SEED = 1234
