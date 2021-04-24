@@ -1,1 +1,1 @@
-MSE Loss between generated data and test data: 0.11169324070215225
+MSE Loss between generated data and test data: 0.16132809221744537

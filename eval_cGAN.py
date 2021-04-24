@@ -42,8 +42,8 @@ C_test = label_to_onehot(Y_test, N_CLASSES).float()
 
 
 """ Load models """
-OUTPUT_DIR = "output/cGAN-MLP"
-# OUTPUT_DIR = "output/cGAN-CNN"
+# OUTPUT_DIR = "output/cGAN-MLP"
+OUTPUT_DIR = "output/cGAN-CNN"
 
 gen = torch.load(os.path.join(OUTPUT_DIR, "generator.pt"))
 disc = torch.load(os.path.join(OUTPUT_DIR, "discriminator.pt"))

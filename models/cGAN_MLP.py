@@ -15,11 +15,9 @@ class Generator(nn.Module):
         self.output_h = output_h
         self.output_w = output_w
         
-        def block(in_features, out_features, normalize=True):
+        def block(in_features, out_features):
             layers = [nn.Linear(in_features, out_features)]
-            if normalize:
-                layers.append(nn.BatchNorm1d(out_features, 0.8))
-            layers.append(nn.LeakyReLU(0.2, inplace=True))
+            layers.append(nn.ReLU(inplace=True))
             return layers
 
         hidden_block_layers = []
@@ -27,10 +25,10 @@ class Generator(nn.Module):
             hidden_block_layers.extend(block(hidden_dims[i], hidden_dims[i + 1]))
         
         self.model = nn.Sequential(
-            *block(latent_dim + label_dim, hidden_dims[0], normalize=False),
+            *block(latent_dim + label_dim, hidden_dims[0]),
             *hidden_block_layers,
             nn.Linear(hidden_dims[-1], output_h * output_w),
-            nn.Tanh()
+            nn.Sigmoid()
         )
 
     def forward(self, noise, labels):
@@ -44,11 +42,9 @@ class Discriminator(nn.Module):
     def __init__(self, input_h, input_w, label_dim, hidden_dims: List[int]):
         super(Discriminator, self).__init__()
 
-        def block(in_features, out_features, dropout=True):
+        def block(in_features, out_features):
             layers = [nn.Linear(in_features, out_features)]
-            if dropout:
-                layers.append(nn.Dropout(0.4))
-            layers.append(nn.LeakyReLU(0.2, inplace=True))
+            layers.append(nn.ReLU(inplace=True))
             return layers
 
         hidden_block_layers = []
@@ -56,7 +52,7 @@ class Discriminator(nn.Module):
             hidden_block_layers.extend(block(hidden_dims[i], hidden_dims[i + 1]))
         
         self.model = nn.Sequential(
-            *block(input_h * input_w + label_dim, hidden_dims[0], dropout=False),
+            *block(input_h * input_w + label_dim, hidden_dims[0]),
             *hidden_block_layers,
             nn.Linear(hidden_dims[-1], 1)
         )

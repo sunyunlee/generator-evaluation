@@ -57,8 +57,8 @@ C_train = label_to_onehot(Y_train, N_CLASSES).float()
 C_test = label_to_onehot(Y_test, N_CLASSES).float()
 
 """ Declare generator and discriminator """
-gen = Generator(LATENT_DIM, N_CLASSES, [100, 256, 512], INPUT_H, INPUT_W)
-disc = Discriminator(INPUT_H, INPUT_W, N_CLASSES, [512, 256, 100])
+gen = Generator(LATENT_DIM, N_CLASSES, INPUT_H, INPUT_W)
+disc = Discriminator(INPUT_H, INPUT_W, N_CLASSES)
 
 """ Declare data iterators """
 train_dataset = TensorDataset(X_train, C_train)
