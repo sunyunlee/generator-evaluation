@@ -5,13 +5,14 @@ from plot_functions.plot_images import plot_image_collage
 import torch 
 import numpy as np
 import os
+import pandas as pd
 
 
 TRAINED_CSF_PATH = "output/Classifier/classifier.pt"
 
 # TODO: constant to set
-# MODEL = "cVAE-MLP"
-MODEL = "cVAE-CNN" 
+MODEL = "cVAE-MLP"
+# MODEL = "cVAE-CNN" 
 # MODEL = "cGAN-MLP"
 # MODEL = "cGAN-CNN"
 
@@ -87,3 +88,53 @@ print("The accuracy score: ", accuracy.item())
 f = open(os.path.join(OUTPUT_DIR, "{}_losses.txt".format(MODEL)), "a")
 f.write("The accuracy score: {}".format(accuracy.item()))
 f.close()
+
+
+#PCA 
+LABEL_DIM = 10
+x = X_gen.reshape(N, 28*28).detach().numpy()
+
+from sklearn.decomposition import PCA
+from sklearn import metrics
+from sklearn.mixture import GaussianMixture
+
+x_pca = PCA(n_components=2).fit_transform(x)
+df_pca = pd.DataFrame(x_pca, columns=["principal component 1", "principal component 2"])
+df_pca_labels = pd.concat([df_pca, pd.DataFrame(np.array(Y_gen), columns=["labels"])], axis=1)
+
+gmm_pred_labels = GaussianMixture(n_components=LABEL_DIM, reg_covar=1e-5).fit_predict(x)
+
+df_pca_gmm_labels = pd.concat([df_pca_labels, pd.DataFrame(gmm_pred_labels, columns=["gmm_labels"])], axis=1)
+
+from collections import Counter
+
+asgnd_gmm_labels = np.unique(np.array(df_pca_gmm_labels["gmm_labels"])).astype(int)
+corr_gmm_labels = []
+
+for i in asgnd_gmm_labels: 
+    most_common = Counter(df_pca_gmm_labels[df_pca_gmm_labels["gmm_labels"] == i]["labels"]).most_common()[0][0]
+    corr_gmm_labels.append(most_common)
+
+df_pca_gmm_labels["corr_gmm_labels"] = np.array(corr_gmm_labels)[df_pca_gmm_labels["gmm_labels"]]
+
+labels_true = list(df_pca_gmm_labels["labels"])
+labels_pred = list(df_pca_gmm_labels["corr_gmm_labels"])
+print("Gaussian Mixture v measure: ", metrics.v_measure_score(labels_true, labels_pred))
+
+from sklearn.cluster import KMeans
+
+kmeans_pred_labels = KMeans(n_clusters=LABEL_DIM, init="k-means++").fit_predict(x)
+df_pca_kmean_labels = pd.concat([df_pca_labels, pd.DataFrame(kmeans_pred_labels, columns=["km_labels"])], axis=1)
+
+asgnd_km_labels = np.unique(np.array(df_pca_kmean_labels["km_labels"])).astype(int)
+corr_km_labels = []
+
+for i in asgnd_km_labels: 
+    most_common = Counter(df_pca_kmean_labels[df_pca_kmean_labels["km_labels"] == i]["labels"]).most_common()[0][0]
+    corr_km_labels.append(most_common)
+
+df_pca_kmean_labels["corr_km_labels"] = np.array(corr_km_labels)[df_pca_kmean_labels["km_labels"]]
+
+labels_true = list(df_pca_kmean_labels["labels"])
+labels_pred = list(df_pca_kmean_labels["corr_km_labels"])
+print("KMeans v measure: ", metrics.v_measure_score(labels_true, labels_pred))
