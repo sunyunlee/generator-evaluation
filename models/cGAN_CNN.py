@@ -1,22 +1,21 @@
 """
-# Some code copied from https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/cgan/cgan.py
+Some code copied from https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/cgan/cgan.py
 """
 from typing import List
-from Model import Model
 import torch
 import torch.nn as nn
 
 
 class Generator(nn.Module):
     
-    def __init__(self, latent_dim, label_dim, hidden_dims: List[int],
+    def __init__(self, latent_dim, label_dim, filter_counts: List[int],
                  output_h, output_w):
         super(Generator, self).__init__()
 
         self.output_h = output_h
         self.output_w = output_w
         
-        def block(in_features, out_features, normalize=True):
+        def block(in_filters, out_filters, normalize=True):
             layers = [nn.Linear(in_features, out_features)]
             if normalize:
                 layers.append(nn.BatchNorm1d(out_features, 0.8))
@@ -35,14 +34,14 @@ class Generator(nn.Module):
         )
 
     def forward(self, noise, labels):
-        gen_input = torch.cat((labels, noise), -1)
+        gen_input = torch.cat((noise, labels), -1)
         img = self.model(gen_input)
-        return img.view(img.shape[0], output_h, output_w)
+        return img.view(img.shape[0], self.output_h, self.output_w)
 
 
 class Discriminator(nn.Module):
     
-    def __init__(self, input_h, input_w, label_dim, hidden_dims: List[int]):
+    def __init__(self, input_h, input_w, label_dim, filter_counts: List[int]):
         super(Discriminator, self).__init__()
 
         def block(in_features, out_features, dropout=True):
@@ -64,4 +63,5 @@ class Discriminator(nn.Module):
 
     def forward(self, img, labels):
         disc_input = torch.cat((img.view(img.shape[0], -1), labels), -1)
-        return self.model(disc_input)
+        disc_output = self.model(disc_input)
+        return disc_output.view(disc_output.shape[0])

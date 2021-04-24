@@ -19,6 +19,32 @@ def plot_losses(path: str, model_name: str, train_losses: List[int], test_losses
     plt.savefig(os.path.join(path, "{}_losses.png".format(model_name)))
 
 
+def plot_cgan_losses(path: str) -> None:
+    gen_losses = []
+    disc_losses = []
+    gen_loss_prefix = "gen. loss "
+    disc_loss_prefix = "disc. loss "
+    loss_num_len = 5
+    file = open(os.path.join(path, "losses.txt"), 'r')
+    for line in file.readlines():
+        if line.isspace():
+            continue
+        gen_loss_index = line.index(gen_loss_prefix) + len(gen_loss_prefix)
+        gen_losses.append(float(line[gen_loss_index:(gen_loss_index + loss_num_len)]))
+        disc_loss_index = line.index(disc_loss_prefix) + len(disc_loss_prefix)
+        disc_losses.append(float(line[disc_loss_index:(disc_loss_index + loss_num_len)]))
+    
+    file.close()
+    
+    plt.plot(gen_losses, "r")
+    plt.plot(disc_losses, "b")
+    plt.ylabel("Losses")
+    plt.xlabel("Epochs")
+    plt.title("cGAN Component Losses")
+    plt.legend(["Generator", "Discriminator"])
+    plt.savefig(os.path.join(path, "losses.png"))
+
+
 def plot_UMAP(generated_data: torch.tensor, labels: np.array, n_classes: int, model_name: str, path: str) -> None:
     reducer = umap.UMAP(random_state=42)
     embedding = reducer.fit_transform(generated_data)
