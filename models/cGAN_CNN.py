@@ -19,12 +19,12 @@ class Generator(nn.Module):
         self.conv3 = nn.ConvTranspose2d(1, 1, kernel_size=4)
 
     def forward(self, noise, labels):
-        gen_input = torch.cat((noise, labels), -1)
-        out = F.relu(self.linear1(gen_input)) # [N, 300]
-        out = F.relu(self.linear2(out)) # [N, 4*4*32]
+        gen_input = torch.cat((noise, labels), dim=1)
+        out = F.leaky_relu(self.linear1(gen_input), 0.2) # [N, 300]
+        out = F.leaky_relu(self.linear2(out), 0.2) # [N, 4*4*32]
         out = out.reshape((out.shape[0], 32, 4, 4)) # [N, 32, 4, 4]
-        out = F.relu(self.conv1(out)) # [N, 16, 11, 11]
-        out = F.relu(self.conv2(out)) # [N, 1, 25, 25]
+        out = F.leaky_relu(self.conv1(out), 0.2) # [N, 16, 11, 11]
+        out = F.leaky_relu(self.conv2(out), 0.2) # [N, 1, 25, 25]
         img = torch.sigmoid(self.conv3(out)) # [N, 1, 28, 28]
         return img.view(img.shape[0], self.output_h, self.output_w)
 
@@ -40,10 +40,10 @@ class Discriminator(nn.Module):
         self.linear2 = nn.Linear(300, 1)
 
     def forward(self, img, labels):
-        out = F.relu(self.conv1(img.view(img.shape[0], 1, 28, 28))) # [N, 16, 12, 12]
-        out = F.relu(self.conv2(out)) # [N, 32, 4, 4]
+        out = F.leaky_relu(self.conv1(img.view(img.shape[0], 1, 28, 28)), 0.2) # [N, 16, 12, 12]
+        out = F.leaky_relu(self.conv2(out), 0.2) # [N, 32, 4, 4]
         out = out.reshape((out.shape[0], -1)) # [N, 4*4*32]
-        out = F.relu(self.linear1(torch.cat((out.view(out.shape[0], -1), labels), -1))) # [N, 300]
+        out = F.leaky_relu(self.linear1(torch.cat((out.view(out.shape[0], -1), labels), dim=1)), 0.2) # [N, 300]
         disc_output = torch.sigmoid(self.linear2(out))
         return disc_output.view(disc_output.shape[0])
 

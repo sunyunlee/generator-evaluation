@@ -42,9 +42,9 @@ INPUT_H = 28
 INPUT_W = 28
 BATCH_SIZE = 100
 LATENT_DIM = 50
-GEN_LEARNING_RATE = 1e-3
+GEN_LEARNING_RATE = 1e-4
 GEN_STEPS_PER_CYCLE = 1
-DISC_LEARNING_RATE = 1e-3
+DISC_LEARNING_RATE = 1e-5
 DISC_STEPS_PER_CYCLE = 1
 
 
@@ -99,12 +99,12 @@ for ep in range(N_EPOCHS):
             fake_loss = F.mse_loss(disc(fake_images, fake_labels), zeroes)
             
             loss = 0.5 * real_loss + 0.5 * fake_loss
-            
-            # Backward
-            loss.backward()
 
             disc_loss += loss.item()
             num_disc_steps += 1
+            
+            # Backward
+            loss.backward()
             
             # Update 
             disc_opt.step()

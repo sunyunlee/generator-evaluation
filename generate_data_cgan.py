@@ -10,8 +10,8 @@ import pandas as pd
 
 TRAINED_CSF_PATH = "output/Classifier/classifier.pt"
 
-MODEL = "cGAN-MLP"
-# MODEL = "cGAN-CNN"
+# MODEL = "cGAN-MLP"
+MODEL = "cGAN-CNN"
 
 LATENT_DIM = 50 # TODO: constant to set
 
@@ -19,7 +19,7 @@ SEED = 1234
 
 N_CLASSES = 10
 OUTPUT_DIR = "classifier-results/{}".format(MODEL)
-TRAINED_MODEL_PATH = "output/{}/decoder.pt".format(MODEL)
+TRAINED_MODEL_PATH = "output/{}/generator.pt".format(MODEL)
 
 device = torch.device("cpu")
 
@@ -68,18 +68,18 @@ csf = torch.load(TRAINED_CSF_PATH)
 N_PER_CLASS = 1000
 N = N_CLASSES * N_PER_CLASS
 
-noise = sample_noise(N, LATENT_DIM)
+noise = sample_noise(N, LATENT_DIM).float()
 Y_gen = torch.tensor([i for i in range(N_CLASSES) for j in range(N_PER_CLASS)]).reshape(N, 1)
 
 indices = torch.randperm(N)
 Y_gen = Y_gen[indices]
-C_gen = label_to_onehot(Y_gen, N_CLASSES)
+C_gen = label_to_onehot(Y_gen, N_CLASSES).float()
 X_gen = gen(noise.to(device), C_gen.to(device))
 X_gen = X_gen.reshape(len(X_gen), 1, 28, 28)
 
 
 # IV. Pass outputs from the trained model to classifier
-c_out = csf(X_gen)
+c_out = csf(X_gen.double())
 class_out = torch.argmax(c_out, 1)
 count_correct = torch.sum(class_out.flatten() == Y_gen.flatten())
 accuracy = count_correct / len(Y_gen)

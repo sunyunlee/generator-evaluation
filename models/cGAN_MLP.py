@@ -17,7 +17,7 @@ class Generator(nn.Module):
         
         def block(in_features, out_features):
             layers = [nn.Linear(in_features, out_features)]
-            layers.append(nn.ReLU(inplace=True))
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
             return layers
 
         hidden_block_layers = []
@@ -32,7 +32,7 @@ class Generator(nn.Module):
         )
 
     def forward(self, noise, labels):
-        gen_input = torch.cat((noise, labels), -1)
+        gen_input = torch.cat((noise, labels), dim=1)
         img = self.model(gen_input)
         return img.view(img.shape[0], self.output_h, self.output_w)
 
@@ -44,7 +44,7 @@ class Discriminator(nn.Module):
 
         def block(in_features, out_features):
             layers = [nn.Linear(in_features, out_features)]
-            layers.append(nn.ReLU(inplace=True))
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
             return layers
 
         hidden_block_layers = []
@@ -54,10 +54,11 @@ class Discriminator(nn.Module):
         self.model = nn.Sequential(
             *block(input_h * input_w + label_dim, hidden_dims[0]),
             *hidden_block_layers,
-            nn.Linear(hidden_dims[-1], 1)
+            nn.Linear(hidden_dims[-1], 1),
+            nn.Sigmoid()
         )
 
     def forward(self, img, labels):
-        disc_input = torch.cat((img.view(img.shape[0], -1), labels), -1)
+        disc_input = torch.cat((img.view(img.shape[0], -1), labels), dim=1)
         disc_output = self.model(disc_input)
         return disc_output.view(disc_output.shape[0])
